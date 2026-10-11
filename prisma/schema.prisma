@@ -15,6 +15,22 @@ enum Role {
   TEACHER
 }
 
+enum QuestionType {
+  MCQ // multiple choice, marked by code
+  SHORT // short answer, marked by AI against the mark scheme
+}
+
+enum GuideStatus {
+  DRAFT // only the teacher can see it
+  APPROVED // students can see it
+}
+
+enum MasteryStatus {
+  NOT_STARTED
+  LEARNING
+  MASTERED
+}
+
 // A person who can log in: a student or a teacher.
 model User {
   id           String    @id @default(cuid())
@@ -26,6 +42,10 @@ model User {
   className    String // e.g. "4C"
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
+
+  attempts      Attempt[]
+  mastery       Mastery[]
+  tutorSessions TutorSession[]
 }
 
 // One row per syllabus learning objective, e.g. "1.1.4".
@@ -39,4 +59,75 @@ model Objective {
   statement   String // "Candidates should be able to..."
   notes       String[] // "Notes and guidance"
   sortOrder   Int // keeps syllabus order ("10.1" would otherwise sort before "2.1.1")
+
+  questions Question[]
+  mastery   Mastery[]
+}
+
+// A check / exam-style question, tied to one objective.
+model Question {
+  id          String       @id // e.g. "1.1-3"
+  objectiveId String
+  objective   Objective    @relation(fields: [objectiveId], references: [id])
+  type        QuestionType
+  prompt      String
+  options     String[] // MCQ choices (empty for SHORT)
+  answer      String // MCQ: the correct option. SHORT: a model answer
+  markScheme  String[] // one line per mark point
+  marks       Int
+  sortOrder   Int
+
+  attempts Attempt[]
+}
+
+// One learning guide per built topic ("1.1" or "10").
+model Guide {
+  id         String      @id @default(cuid())
+  topicKey   String      @unique // "1.1" or "10"
+  title      String
+  sections   Json // list of { kind, heading, body, objectiveIds, diagram?, answer? }
+  status     GuideStatus @default(DRAFT)
+  approvedAt DateTime?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+// A student's answer to one question, with the marks and feedback they got.
+model Attempt {
+  id         String   @id @default(cuid())
+  studentId  String
+  student    User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answer     String
+  score      Int
+  maxScore   Int
+  feedback   String
+  createdAt  DateTime @default(now())
+}
+
+// A student's current status on one objective. Recalculated after every check.
+model Mastery {
+  studentId   String
+  student     User          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  objectiveId String
+  objective   Objective     @relation(fields: [objectiveId], references: [id])
+  status      MasteryStatus
+  percent     Int // 0-100, from the latest attempt at each question
+  updatedAt   DateTime      @updatedAt
+
+  @@id([studentId, objectiveId])
+}
+
+// One chat with the AI tutor about one topic.
+model TutorSession {
+  id           String   @id @default(cuid())
+  studentId    String
+  student      User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  topicKey     String // "1.1" or "10"
+  messages     Json // list of { role: "user" | "assistant", content }
+  inputTokens  Int      @default(0) // for cost estimates
+  outputTokens Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

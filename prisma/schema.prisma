@@ -1,5 +1,4 @@
 // Prisma schema: describes our database tables.
-// Tables (models) are added in later steps.
 
 generator client {
   provider = "prisma-client-js"
@@ -9,4 +8,17 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")          // pooled connection, used by the app
   directUrl = env("DATABASE_URL_UNPOOLED") // direct connection, used for migrations
+}
+
+// One row per syllabus learning objective, e.g. "1.1.4".
+model Objective {
+  id          String   @id // syllabus ID, e.g. "1.1.4"
+  paper       Int // 1 or 2
+  topicNumber Int // 1 to 10
+  topic       String // e.g. "Data representation"
+  subtopicId  String // e.g. "1.1"
+  subtopic    String // e.g. "Number systems"
+  statement   String // "Candidates should be able to..."
+  notes       String[] // "Notes and guidance"
+  sortOrder   Int // keeps syllabus order ("10.1" would otherwise sort before "2.1.1")
 }

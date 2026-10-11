@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { db } from "@/lib/db";
 
 // Always run on the server at request time (never cached at build time),
@@ -24,6 +25,9 @@ export default async function Home() {
       <p className="mt-6">
         Database: {connected ? "connected ✅" : "not connected ❌"}
       </p>
+      <Link href="/syllabus" className="mt-6 inline-block text-blue-700 underline">
+        Browse the syllabus
+      </Link>
     </main>
   );
 }

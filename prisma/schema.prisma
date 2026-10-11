@@ -1,0 +1,12 @@
+// Prisma schema: describes our database tables.
+// Tables (models) are added in later steps.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")          // pooled connection, used by the app
+  directUrl = env("DATABASE_URL_UNPOOLED") // direct connection, used for migrations
+}

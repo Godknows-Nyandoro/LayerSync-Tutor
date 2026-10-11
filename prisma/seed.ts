@@ -3,7 +3,9 @@
 // Safe to run more than once: it updates rows that already exist.
 
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 import { syllabus } from "../data/syllabus";
+import { CLASS_NAME, DEMO_PASSWORD, emailFor, students, teacher } from "../data/class";
 
 const db = new PrismaClient();
 
@@ -37,8 +39,37 @@ async function seedSyllabus() {
   console.log(`Seeded ${sortOrder} syllabus objectives`);
 }
 
+async function seedUsers() {
+  const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
+
+  await db.user.upsert({
+    where: { email: teacher.email },
+    create: { ...teacher, passwordHash, role: "TEACHER", className: CLASS_NAME },
+    update: { name: teacher.name, passwordHash },
+  });
+
+  for (const student of students) {
+    const email = emailFor(student.name);
+    await db.user.upsert({
+      where: { email },
+      create: {
+        name: student.name,
+        email,
+        passwordHash,
+        role: "STUDENT",
+        studentCode: student.code,
+        className: CLASS_NAME,
+      },
+      update: { name: student.name, passwordHash },
+    });
+  }
+
+  console.log(`Seeded 1 teacher and ${students.length} students`);
+}
+
 async function main() {
   await seedSyllabus();
+  await seedUsers();
 }
 
 main()

@@ -10,6 +10,24 @@ datasource db {
   directUrl = env("DATABASE_URL_UNPOOLED") // direct connection, used for migrations
 }
 
+enum Role {
+  STUDENT
+  TEACHER
+}
+
+// A person who can log in: a student or a teacher.
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String // bcrypt hash, never the real password
+  role         Role
+  studentCode  String?   @unique // e.g. "SA-001" (students only)
+  className    String // e.g. "4C"
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+}
+
 // One row per syllabus learning objective, e.g. "1.1.4".
 model Objective {
   id          String   @id // syllabus ID, e.g. "1.1.4"

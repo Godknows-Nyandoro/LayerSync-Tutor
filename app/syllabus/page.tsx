@@ -25,7 +25,7 @@ export default async function SyllabusPage() {
   return (
     <main className="mx-auto max-w-2xl p-4">
       <Link href="/" className="text-sm text-blue-700">
-        ← Home
+        ← Back
       </Link>
       <h1 className="mt-2 text-2xl font-bold">Syllabus 0478</h1>
       <p className="text-sm text-gray-600">{objectives.length} learning objectives</p>

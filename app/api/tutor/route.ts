@@ -5,7 +5,7 @@
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { findBuiltTopic } from "@/data/topics";
-import type { GuideSection } from "@/data/guides";
+import { getApprovedGuideText } from "@/lib/guides";
 import { streamChat, type ChatMessage } from "@/lib/openrouter";
 import {
   MAX_MESSAGE_CHARS,

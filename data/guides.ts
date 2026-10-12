@@ -3,7 +3,15 @@
 // `diagram` names a diagram drawn in code (React + SVG), never an AI-generated image.
 // The seed loads these as DRAFTS: students only see a guide after the teacher approves it.
 
+// Hand-drawn diagrams for the main topics.
 export type DiagramName = "binary-place-values" | "hex-nibbles" | "logic-gates" | "example-circuit";
+
+// Diagrams for any topic, described as data and drawn by our DataDiagram component.
+// The AI can fill in the words, but the drawing is always done by our code.
+export type DiagramData =
+  | { type: "flow"; title: string; steps: string[]; loop: boolean } // steps with arrows (loop = a cycle)
+  | { type: "table"; title: string; headers: string[]; rows: string[][] } // comparison or truth table
+  | { type: "parts"; title: string; parts: { label: string; detail: string }[] }; // pieces side by side
 
 export type GuideSection = {
   kind: "explain" | "try" | "check";
@@ -11,6 +19,7 @@ export type GuideSection = {
   body: string; // paragraphs separated by blank lines
   objectiveIds: string[];
   diagram?: DiagramName;
+  diagramData?: DiagramData;
   answer?: string; // for "try" and "check": shown only when the student taps "Show answer"
 };
 

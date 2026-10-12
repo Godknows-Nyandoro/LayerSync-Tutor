@@ -4,6 +4,7 @@
 import type { DiagramName, GuideSection } from "@/data/guides";
 import { BinaryPlaceValues, HexNibbles } from "./diagrams/NumberDiagrams";
 import { ExampleCircuit, LogicGates } from "./diagrams/LogicDiagrams";
+import { DataDiagram } from "./diagrams/DataDiagram";
 
 // Diagram name (stored in the guide) -> the component that draws it.
 const DIAGRAMS: Record<DiagramName, () => React.JSX.Element> = {
@@ -44,6 +45,11 @@ export function GuideView({ sections }: { sections: GuideSection[] }) {
             {Diagram && (
               <div className="mt-3 flex justify-center rounded bg-gray-50 p-2">
                 <Diagram />
+              </div>
+            )}
+            {section.diagramData && (
+              <div className="mt-3 flex justify-center rounded bg-gray-50 p-2">
+                <DataDiagram data={section.diagramData} />
               </div>
             )}
             {section.answer && (

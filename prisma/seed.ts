@@ -191,12 +191,42 @@ async function seedHistory() {
   console.log("Seeded student history (attempts, mastery, tutor sessions)");
 }
 
+// One flagged tutor reply, so the teacher dashboard has something to show.
+async function seedFlags() {
+  for (const student of students) {
+    const flag = history[student.code].flag;
+    if (!flag) continue;
+    const user = await db.user.findUniqueOrThrow({ where: { studentCode: student.code } });
+
+    const chat = await db.tutorSession.create({
+      data: {
+        studentId: user.id,
+        topicKey: flag.topicKey,
+        messages: [
+          { role: "user", content: flag.studentMessage },
+          { role: "assistant", content: flag.tutorReply },
+        ],
+        inputTokens: 1200,
+        outputTokens: 60,
+        createdAt: daysAgo(1),
+      },
+    });
+    // messageIndex 1 = the tutor's reply (index 0 is the student's message)
+    await db.tutorFlag.create({
+      data: { studentId: user.id, sessionId: chat.id, messageIndex: 1, reason: flag.reason, comment: flag.comment, createdAt: daysAgo(1) },
+    });
+  }
+
+  console.log("Seeded flagged tutor replies");
+}
+
 async function main() {
   await seedSyllabus();
   await seedQuestions();
   await seedGuides();
   await seedUsers();
   await seedHistory();
+  await seedFlags();
 }
 
 main()

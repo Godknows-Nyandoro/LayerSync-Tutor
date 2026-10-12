@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
-import { getClassDashboard } from "@/lib/dashboard";
+import { FLAG_REASON_LABEL, getClassDashboard } from "@/lib/dashboard";
 import { mainUnits } from "@/data/topics";
 import { LogoutButton } from "@/components/LogoutButton";
 
@@ -69,6 +69,27 @@ export default async function TeacherDashboard() {
             </li>
           ))}
           {data.needsHelp.length === 0 && <li className="text-sm text-gray-600">Nobody right now.</li>}
+        </ul>
+      </section>
+
+      {/* Tutor replies that students were unhappy with */}
+      <section className="rounded-lg border border-amber-300 bg-white p-3">
+        <h2 className="font-semibold text-amber-800">🚩 Flagged tutor replies ({data.openFlags.length})</h2>
+        <ul className="mt-2 space-y-2">
+          {data.openFlags.map((flag) => (
+            <li key={flag.id} className="text-sm">
+              <Link href={`/teacher/flags/${flag.id}`} className="font-medium text-blue-700 underline">
+                {flag.student.name}
+              </Link>
+              <span className="text-gray-700">
+                {" "}
+                on {flag.session.topicKey}: {FLAG_REASON_LABEL[flag.reason]}
+                {flag.comment && ` ("${flag.comment}")`}
+              </span>
+              <span className="text-xs text-gray-400"> · {flag.createdAt.toLocaleDateString("en-GB")}</span>
+            </li>
+          ))}
+          {data.openFlags.length === 0 && <li className="text-sm text-gray-600">No flagged replies.</li>}
         </ul>
       </section>
 

@@ -31,6 +31,18 @@ enum MasteryStatus {
   MASTERED
 }
 
+enum FlagReason {
+  WRONG // the tutor said something incorrect
+  CONFUSING // the explanation did not make sense
+  GAVE_ANSWER // the tutor gave away the answer
+  OTHER
+}
+
+enum FlagStatus {
+  OPEN // the teacher has not looked at it yet
+  RESOLVED
+}
+
 // A person who can log in: a student or a teacher.
 model User {
   id           String    @id @default(cuid())
@@ -46,6 +58,7 @@ model User {
   attempts      Attempt[]
   mastery       Mastery[]
   tutorSessions TutorSession[]
+  flags         TutorFlag[]
 }
 
 // One row per syllabus learning objective, e.g. "1.1.4".
@@ -130,4 +143,23 @@ model TutorSession {
   outputTokens Int      @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  flags TutorFlag[]
+}
+
+// A student flagged one tutor reply as wrong, confusing, etc. The teacher reviews it.
+model TutorFlag {
+  id           String       @id @default(cuid())
+  studentId    String
+  student      User         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  sessionId    String
+  session      TutorSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  messageIndex Int // position of the flagged reply in the chat's messages list
+  reason       FlagReason
+  comment      String       @default("")
+  status       FlagStatus   @default(OPEN)
+  createdAt    DateTime     @default(now())
+  resolvedAt   DateTime?
+
+  @@unique([sessionId, messageIndex]) // one flag per reply
 }

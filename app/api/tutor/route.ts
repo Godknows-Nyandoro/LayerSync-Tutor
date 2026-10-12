@@ -68,30 +68,42 @@ export async function POST(request: Request) {
   const messages: ChatMessage[] = [systemPrompt, ...history.slice(-12), userMessage];
 
   // 6. Stream the reply to the browser as it arrives, then save the chat.
+  // The reply is always saved (even an error message), so each reply's position
+  // in the list stays fixed. A flag uses that position to point at one reply.
+  const replyIndex = history.length + 1; // history, then the student's message, then this reply
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
+      let reply = "";
+      const usage = { inputTokens: 0, outputTokens: 0 };
       try {
-        const { text, usage } = await streamChat(messages, MAX_REPLY_TOKENS, (piece) =>
+        const result = await streamChat(messages, MAX_REPLY_TOKENS, (piece) =>
           controller.enqueue(encoder.encode(piece)),
         );
-        await db.tutorSession.update({
-          where: { id: chat.id },
-          data: {
-            messages: [...history, userMessage, { role: "assistant", content: text }],
-            inputTokens: { increment: usage.inputTokens },
-            outputTokens: { increment: usage.outputTokens },
-          },
-        });
+        reply = result.text;
+        Object.assign(usage, result.usage);
       } catch (error) {
         console.error(error);
-        controller.enqueue(encoder.encode("\n[Sorry, the tutor is unavailable right now. Please try again.]"));
+        reply = "[Sorry, the tutor is unavailable right now. Please try again.]";
+        controller.enqueue(encoder.encode(reply));
       }
+      await db.tutorSession.update({
+        where: { id: chat.id },
+        data: {
+          messages: [...history, userMessage, { role: "assistant", content: reply }],
+          inputTokens: { increment: usage.inputTokens },
+          outputTokens: { increment: usage.outputTokens },
+        },
+      });
       controller.close();
     },
   });
 
   return new Response(stream, {
-    headers: { "Content-Type": "text/plain; charset=utf-8", "X-Session-Id": chat.id },
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "X-Session-Id": chat.id,
+      "X-Reply-Index": String(replyIndex),
+    },
   });
 }

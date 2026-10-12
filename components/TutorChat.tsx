@@ -2,8 +2,10 @@
 // The chat box. Runs in the browser so it can show the reply word by word as it streams in.
 
 import { useState } from "react";
+import { FlagButton } from "./FlagButton";
 
-type Message = { role: "user" | "assistant"; content: string };
+// replyIndex: where a tutor reply is saved in the chat on the server (needed to flag it).
+type Message = { role: "user" | "assistant"; content: string; replyIndex?: number };
 
 export function TutorChat({ topicKey }: { topicKey: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -35,6 +37,8 @@ export function TutorChat({ topicKey }: { topicKey: string }) {
     }
 
     setSessionId(response.headers.get("X-Session-Id"));
+    const replyIndex = Number(response.headers.get("X-Reply-Index"));
+    setMessages((old) => [...old.slice(0, -1), { ...old[old.length - 1], replyIndex }]);
 
     // Read the stream piece by piece and add each piece to the last message.
     const reader = response.body.getReader();
@@ -69,16 +73,23 @@ export function TutorChat({ topicKey }: { topicKey: string }) {
       <p className="text-xs text-gray-500">The tutor gives hints, not answers. Try each step yourself.</p>
 
       <div className="mt-3 max-h-96 space-y-2 overflow-y-auto">
-        {messages.map((message, index) => (
-          <p
-            key={index}
-            className={`whitespace-pre-wrap rounded p-2 text-sm ${
-              message.role === "user" ? "ml-8 bg-blue-50" : "mr-8 bg-gray-100"
-            }`}
-          >
-            {message.content || "…"}
-          </p>
-        ))}
+        {messages.map((message, index) => {
+          const isStreaming = busy && index === messages.length - 1;
+          const canFlag =
+            message.role === "assistant" && message.replyIndex !== undefined && sessionId && !isStreaming;
+          return (
+            <div key={index} className="space-y-1">
+              <p
+                className={`whitespace-pre-wrap rounded p-2 text-sm ${
+                  message.role === "user" ? "ml-8 bg-blue-50" : "mr-8 bg-gray-100"
+                }`}
+              >
+                {message.content || "…"}
+              </p>
+              {canFlag && <FlagButton sessionId={sessionId} messageIndex={message.replyIndex!} />}
+            </div>
+          );
+        })}
       </div>
 
       <form onSubmit={send} className="mt-3 flex gap-2">

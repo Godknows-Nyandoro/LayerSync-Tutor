@@ -9,6 +9,13 @@ export const WEAK_PERCENT = 50; // an objective below this percent
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+export const FLAG_REASON_LABEL = {
+  WRONG: "Wrong",
+  CONFUSING: "Confusing",
+  GAVE_ANSWER: "Gave away the answer",
+  OTHER: "Other",
+};
+
 export function daysSince(date: Date | null) {
   if (!date) return null;
   return Math.floor((Date.now() - date.getTime()) / DAY_MS);
@@ -101,8 +108,16 @@ export async function getClassDashboard(className: string) {
     .sort((a, b) => a.average! - b.average!)
     .slice(0, 5);
 
+  // Tutor replies flagged by students in this class that the teacher has not reviewed yet.
+  const openFlags = await db.tutorFlag.findMany({
+    where: { status: "OPEN", student: { className } },
+    include: { student: { select: { name: true } }, session: { select: { topicKey: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+
   return {
     rows,
+    openFlags,
     needsHelp: rows.filter((r) => r.reasons.length > 0),
     activeThisWeek: rows.filter((r) => r.daysInactive !== null && r.daysInactive < INACTIVE_DAYS).length,
     totalObjectives: objectives.length,

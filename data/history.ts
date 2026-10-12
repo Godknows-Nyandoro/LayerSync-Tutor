@@ -11,6 +11,8 @@ export type StudentHistory = {
   retries?: Record<string, { daysAgo: number; fraction: number }[]>;
   // Number of tutor chats per topic.
   tutorSessions: Record<string, number>;
+  // A tutor reply the student flagged, so the teacher's dashboard shows one.
+  flag?: { topicKey: string; studentMessage: string; tutorReply: string; reason: "WRONG" | "CONFUSING" | "GAVE_ANSWER" | "OTHER"; comment: string };
 };
 
 export const history: Record<string, StudentHistory> = {
@@ -50,6 +52,14 @@ export const history: Record<string, StudentHistory> = {
       "1.1-8": [{ daysAgo: 6, fraction: 0 }],
     },
     tutorSessions: { "1.1": 7, "10": 1 },
+    flag: {
+      topicKey: "1.1",
+      studentMessage: "how do I write -45 in two's complement?",
+      tutorReply:
+        "Good question! Start with +45 in binary. Then think about what happens to each bit when you invert it, and what you need to add at the end. What do you get for +45?",
+      reason: "CONFUSING",
+      comment: "I still don't understand why we add 1 at the end",
+    },
   },
   // Average; steady weekly activity
   "SA-004": {

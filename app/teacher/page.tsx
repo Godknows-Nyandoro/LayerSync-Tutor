@@ -126,6 +126,45 @@ export default async function TeacherDashboard() {
         </div>
       </section>
 
+      {/* Every unit in the syllabus, main ones marked */}
+      <section className="rounded-lg border bg-white p-3">
+        <h2 className="font-semibold">All topics</h2>
+        <p className="text-xs text-gray-500">Class average of the latest check score, for students who have tried it.</p>
+        <div className="mt-2 overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="text-xs text-gray-500">
+              <tr>
+                <th className="p-2">Topic</th>
+                <th className="p-2">Class average</th>
+                <th className="p-2">Students tried</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.unitSummaries.map((unit) => (
+                <tr key={unit.key} className="border-t">
+                  <td className="p-2">
+                    <span className="font-mono">{unit.key}</span> {unit.title}
+                    {unit.isMain && (
+                      <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
+                        Main
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-2">
+                    <span className={`rounded px-2 py-0.5 ${scoreClass(unit.average)}`}>
+                      {unit.average === null ? "Not started" : `${unit.average}%`}
+                    </span>
+                  </td>
+                  <td className="p-2">
+                    {unit.studentsTried} / {data.rows.length}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       {/* Weakest objectives across the class */}
       <section className="rounded-lg border bg-white p-3">
         <h2 className="font-semibold">Class weakest objectives</h2>

@@ -1,7 +1,7 @@
 // Numbers for the teacher dashboard, worked out from attempts, mastery and tutor chats.
 
 import { db } from "./db";
-import { mainUnits } from "@/data/topics";
+import { units } from "@/data/topics";
 
 // When a student is flagged as needing help
 export const INACTIVE_DAYS = 7; // no login for this many days
@@ -30,20 +30,23 @@ export async function getClassDashboard(className: string) {
   });
 
   const rows = students.map((student) => {
-    // Topic score = latest attempt at each question in the topic, added up.
+    // Unit score = latest attempt at each question in the unit, added up.
+    // Attempts are newest first, so the first time we see a question is its latest attempt.
+    const seen = new Set<string>();
+    const totals: Record<string, { score: number; max: number }> = {};
+    for (const attempt of student.attempts) {
+      if (seen.has(attempt.questionId)) continue; // already counted a newer attempt
+      seen.add(attempt.questionId);
+      const unitKey = attempt.question.objective.subtopicId;
+      totals[unitKey] ??= { score: 0, max: 0 };
+      totals[unitKey].score += attempt.score;
+      totals[unitKey].max += attempt.maxScore;
+    }
+    // A unit the student has not tried is null ("Not started").
     const topicScores: Record<string, number | null> = {};
-    for (const topic of mainUnits) {
-      const seen = new Set<string>();
-      let score = 0;
-      let max = 0;
-      for (const attempt of student.attempts) {
-        if (attempt.question.objective.subtopicId !== topic.key) continue;
-        if (seen.has(attempt.questionId)) continue; // already counted a newer attempt
-        seen.add(attempt.questionId);
-        score += attempt.score;
-        max += attempt.maxScore;
-      }
-      topicScores[topic.key] = max > 0 ? Math.round((score / max) * 100) : null;
+    for (const unit of units) {
+      const total = totals[unit.key];
+      topicScores[unit.key] = total ? Math.round((total.score / total.max) * 100) : null;
     }
 
     const daysInactive = daysSince(student.lastLoginAt);
@@ -75,11 +78,15 @@ export async function getClassDashboard(className: string) {
     };
   });
 
-  // Class weakest objectives: average percent across students who have attempted it.
-  const objectives = await db.objective.findMany({
-    where: { subtopicId: { in: mainUnits.map((t) => t.key) } },
-    orderBy: { sortOrder: "asc" },
+  // Every unit, for the "All topics" table: class average of the students who have tried it.
+  const unitSummaries = units.map((unit) => {
+    const scores = rows.map((r) => r.topicScores[unit.key]).filter((s): s is number => s !== null);
+    const average = scores.length ? Math.round(scores.reduce((sum, s) => sum + s, 0) / scores.length) : null;
+    return { ...unit, studentsTried: scores.length, average };
   });
+
+  // Class weakest objectives (across the whole syllabus): average percent of the students who tried it.
+  const objectives = await db.objective.findMany({ orderBy: { sortOrder: "asc" } });
   const weakest = objectives
     .map((objective) => {
       const rowsForObjective = students.flatMap((s) => s.mastery.filter((m) => m.objectiveId === objective.id));
@@ -99,6 +106,7 @@ export async function getClassDashboard(className: string) {
     needsHelp: rows.filter((r) => r.reasons.length > 0),
     activeThisWeek: rows.filter((r) => r.daysInactive !== null && r.daysInactive < INACTIVE_DAYS).length,
     totalObjectives: objectives.length,
+    unitSummaries,
     weakest,
   };
 }

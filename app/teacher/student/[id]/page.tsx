@@ -25,8 +25,14 @@ export default async function StudentDetail({ params }: { params: Promise<{ id: 
   });
   if (!student) notFound();
 
+  // Show every main-topic objective, plus any other objective this student has attempted.
   const objectives = await db.objective.findMany({
-    where: { subtopicId: { in: mainUnits.map((t) => t.key) } },
+    where: {
+      OR: [
+        { subtopicId: { in: mainUnits.map((t) => t.key) } },
+        { id: { in: student.mastery.map((m) => m.objectiveId) } },
+      ],
+    },
     orderBy: { sortOrder: "asc" },
   });
   const masteryByObjective = new Map(student.mastery.map((m) => [m.objectiveId, m]));

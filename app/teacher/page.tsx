@@ -3,7 +3,6 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { FLAG_REASON_LABEL, getClassDashboard } from "@/lib/dashboard";
 import { mainUnits } from "@/data/topics";
-import { LogoutButton } from "@/components/LogoutButton";
 
 export const dynamic = "force-dynamic";
 
@@ -23,22 +22,10 @@ export default async function TeacherDashboard() {
 
   return (
     <main className="mx-auto max-w-5xl space-y-6 p-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Class {teacher.className}</h1>
-          <p className="text-sm text-gray-600">{teacher.name}</p>
-        </div>
-        <LogoutButton />
+      <div>
+        <h1 className="text-2xl font-bold">Class {teacher.className}</h1>
+        <p className="text-sm text-gray-600">{teacher.name}</p>
       </div>
-
-      <nav className="flex gap-4 text-sm">
-        <Link href="/teacher/guides" className="text-blue-700 underline">
-          Guides
-        </Link>
-        <Link href="/syllabus" className="text-blue-700 underline">
-          Syllabus
-        </Link>
-      </nav>
 
       {/* Summary numbers */}
       <div className="grid grid-cols-3 gap-2 text-center">

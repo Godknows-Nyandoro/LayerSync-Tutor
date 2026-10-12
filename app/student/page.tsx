@@ -2,7 +2,6 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { mainUnits, units, type Unit } from "@/data/topics";
-import { LogoutButton } from "@/components/LogoutButton";
 import { MasteryChip, type Status } from "@/components/MasteryChip";
 
 export const dynamic = "force-dynamic";
@@ -84,10 +83,7 @@ export default async function StudentHome() {
 
   return (
     <main className="mx-auto max-w-2xl p-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Hi, {user.name.split(" ")[0]}</h1>
-        <LogoutButton />
-      </div>
+      <h1 className="text-2xl font-bold">Hi, {user.name.split(" ")[0]}</h1>
 
       <h2 className="mt-6 font-semibold">Main topics</h2>
       <div className="mt-2 space-y-4">

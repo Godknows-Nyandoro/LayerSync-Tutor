@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
-import { findBuiltTopic } from "@/data/topics";
+import { findUnit } from "@/data/topics";
 import type { GuideSection } from "@/data/guides";
 import { GuideView } from "@/components/GuideView";
 import { TutorChat } from "@/components/TutorChat";
@@ -10,12 +10,12 @@ import { CheckQuiz } from "@/components/CheckQuiz";
 
 export const dynamic = "force-dynamic";
 
-// One topic for a student: learn (guide) -> practise (tutor) -> check (questions).
-// The URL is /student/topic/1.1 or /student/topic/10.
+// One unit for a student: learn (guide) -> practise (tutor) -> check (questions).
+// The URL is /student/topic/<unit key>, e.g. /student/topic/1.1 or /student/topic/10.
 export default async function TopicPage({ params }: { params: Promise<{ key: string }> }) {
   await requireUser("STUDENT");
   const { key } = await params;
-  const topic = findBuiltTopic(key);
+  const topic = findUnit(key);
   if (!topic) notFound();
 
   // status: "APPROVED" means a draft guide is never sent to a student.

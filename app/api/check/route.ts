@@ -5,7 +5,7 @@
 
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/session";
-import { findBuiltTopic } from "@/data/topics";
+import { findUnit } from "@/data/topics";
 import { getApprovedGuideText } from "@/lib/guides";
 import { MAX_ANSWER_CHARS, markMcq, markShortAnswer } from "@/lib/marking";
 import { updateMastery } from "@/lib/mastery";
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
   // 2. Check the input.
   const body = await request.json();
-  const topic = findBuiltTopic(String(body.topicKey));
+  const topic = findUnit(String(body.topicKey));
   if (!topic) return Response.json({ error: "Unknown topic." }, { status: 400 });
   const answers: Record<string, string> = body.answers ?? {};
 

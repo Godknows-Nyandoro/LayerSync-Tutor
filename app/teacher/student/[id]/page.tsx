@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { daysSince } from "@/lib/dashboard";
-import { builtTopics } from "@/data/topics";
+import { mainUnits } from "@/data/topics";
 import { MasteryChip } from "@/components/MasteryChip";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +26,7 @@ export default async function StudentDetail({ params }: { params: Promise<{ id: 
   if (!student) notFound();
 
   const objectives = await db.objective.findMany({
-    where: { subtopicId: { in: builtTopics.map((t) => t.key) } },
+    where: { subtopicId: { in: mainUnits.map((t) => t.key) } },
     orderBy: { sortOrder: "asc" },
   });
   const masteryByObjective = new Map(student.mastery.map((m) => [m.objectiveId, m]));

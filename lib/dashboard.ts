@@ -1,7 +1,7 @@
 // Numbers for the teacher dashboard, worked out from attempts, mastery and tutor chats.
 
 import { db } from "./db";
-import { builtTopics } from "@/data/topics";
+import { mainUnits } from "@/data/topics";
 
 // When a student is flagged as needing help
 export const INACTIVE_DAYS = 7; // no login for this many days
@@ -32,7 +32,7 @@ export async function getClassDashboard(className: string) {
   const rows = students.map((student) => {
     // Topic score = latest attempt at each question in the topic, added up.
     const topicScores: Record<string, number | null> = {};
-    for (const topic of builtTopics) {
+    for (const topic of mainUnits) {
       const seen = new Set<string>();
       let score = 0;
       let max = 0;
@@ -77,7 +77,7 @@ export async function getClassDashboard(className: string) {
 
   // Class weakest objectives: average percent across students who have attempted it.
   const objectives = await db.objective.findMany({
-    where: { subtopicId: { in: builtTopics.map((t) => t.key) } },
+    where: { subtopicId: { in: mainUnits.map((t) => t.key) } },
     orderBy: { sortOrder: "asc" },
   });
   const weakest = objectives

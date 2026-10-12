@@ -2,7 +2,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { getClassDashboard } from "@/lib/dashboard";
-import { builtTopics } from "@/data/topics";
+import { mainUnits } from "@/data/topics";
 import { LogoutButton } from "@/components/LogoutButton";
 
 export const dynamic = "force-dynamic";
@@ -81,7 +81,7 @@ export default async function TeacherDashboard() {
               <tr>
                 <th className="p-2">Student</th>
                 <th className="p-2">Last login</th>
-                {builtTopics.map((topic) => (
+                {mainUnits.map((topic) => (
                   <th key={topic.key} className="p-2">
                     {topic.key} {topic.title}
                   </th>
@@ -105,7 +105,7 @@ export default async function TeacherDashboard() {
                         ? "Today"
                         : `${student.daysInactive}d ago`}
                   </td>
-                  {builtTopics.map((topic) => {
+                  {mainUnits.map((topic) => {
                     const percent = student.topicScores[topic.key];
                     return (
                       <td key={topic.key} className="p-2">

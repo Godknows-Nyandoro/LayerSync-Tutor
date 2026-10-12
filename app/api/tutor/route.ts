@@ -4,7 +4,7 @@
 
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/session";
-import { findBuiltTopic } from "@/data/topics";
+import { findUnit } from "@/data/topics";
 import { getApprovedGuideText } from "@/lib/guides";
 import { streamChat, type ChatMessage } from "@/lib/openrouter";
 import {
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 
   // 2. Check the input.
   const body = await request.json();
-  const topic = findBuiltTopic(String(body.topicKey));
+  const topic = findUnit(String(body.topicKey));
   const message = String(body.message ?? "").trim();
   if (!topic) return new Response("Unknown topic.", { status: 400 });
   if (!message) return new Response("Please type a message.", { status: 400 });

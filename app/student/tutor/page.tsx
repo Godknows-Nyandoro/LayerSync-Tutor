@@ -20,9 +20,27 @@ function whenLabel(date: Date) {
 // /student/tutor              -> chat list (on phones) and a new chat
 // /student/tutor?topic=2.3    -> a new chat about topic 2.3
 // /student/tutor?chat=<id>    -> open an earlier chat
-export default async function TutorPage({ searchParams }: { searchParams: Promise<{ chat?: string; topic?: string }> }) {
+// Where the "Back" button goes. Only pages inside the student area are allowed,
+// so the link cannot be used to send someone to another website.
+function safeBack(back: string | undefined) {
+  return back && back.startsWith("/student") && !back.startsWith("//") ? back : "/student";
+}
+
+// "Back to 1.1 Number systems" when we came from a study page, otherwise "Back to My topics".
+function backLabelFor(back: string) {
+  const match = back.match(/^\/student\/topic\/([^?]+)/);
+  const unit = match ? findUnit(decodeURIComponent(match[1])) : undefined;
+  return unit ? `Back to ${unit.key} ${unit.title}` : "Back to My topics";
+}
+
+export default async function TutorPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ chat?: string; topic?: string; back?: string }>;
+}) {
   const user = await requireUser("STUDENT");
-  const { chat: chatId, topic } = await searchParams;
+  const { chat: chatId, topic, back: backParam } = await searchParams;
+  const back = safeBack(backParam);
 
   // Only this student's chats, newest first.
   const sessions = await db.tutorSession.findMany({
@@ -69,6 +87,8 @@ export default async function TutorPage({ searchParams }: { searchParams: Promis
       // On phones there is only room for one pane: show the chat if one was chosen, otherwise the list.
       showChatOnPhone={Boolean(open || topic)}
       units={units.map((u) => ({ key: u.key, title: u.title, topic: u.topic }))}
+      back={back}
+      backLabel={backLabelFor(back)}
     />
   );
 }

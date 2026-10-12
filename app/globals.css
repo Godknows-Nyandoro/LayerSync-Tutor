@@ -13,6 +13,28 @@ body {
   outline-offset: 2px;
 }
 
+/* Thin, light scrollbars (e.g. the tutor's chat list) instead of thick grey ones. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent; /* slate-300 */
+}
+
+/* Show the hand cursor on everything clickable, so users can tell it is clickable.
+   (Tailwind v4 shows a normal arrow on buttons by default.) */
+a,
+button,
+summary,
+select,
+[role="button"],
+[role="tab"],
+[role="radio"] {
+  cursor: pointer;
+}
+button:disabled,
+select:disabled {
+  cursor: not-allowed;
+}
+
 /* Rounded outline on the clickable row of folding sections, instead of a sharp rectangle. */
 summary {
   border-radius: 0.75rem;

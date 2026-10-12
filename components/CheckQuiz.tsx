@@ -166,7 +166,10 @@ export function CheckQuiz({ topicKey, questions }: { topicKey: string; questions
             <RotateCcw className="h-4 w-4" aria-hidden />
             Try the check again
           </button>
-          <Link href={`/student/tutor?topic=${topicKey}`} className={buttonPrimary}>
+          <Link
+            href={`/student/tutor?topic=${topicKey}&back=${encodeURIComponent(`/student/topic/${topicKey}?tab=check`)}`}
+            className={buttonPrimary}
+          >
             <MessageCircle className="h-4 w-4" aria-hidden />
             Ask the tutor about my mistakes
           </Link>

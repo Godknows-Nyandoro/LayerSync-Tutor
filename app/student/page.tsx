@@ -1,10 +1,21 @@
 import Link from "next/link";
-import { ArrowRight, Binary, ChevronDown, ChevronRight, CircuitBoard, CirclePlay, Layers, MessageCircle, Star } from "lucide-react";
+import {
+  ArrowRight,
+  Binary,
+  ChevronDown,
+  ChevronRight,
+  CircuitBoard,
+  ClipboardCheck,
+  Layers,
+  MessageCircle,
+  Star,
+  Target,
+} from "lucide-react";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { findUnit, mainUnits, units, type Unit } from "@/data/topics";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { buttonPrimary, card, pageContainer } from "@/components/ui/styles";
+import { buttonPrimary, buttonSecondary, card } from "@/components/ui/styles";
 
 export const dynamic = "force-dynamic";
 
@@ -13,11 +24,13 @@ const MAIN_ICONS: Record<string, typeof Binary> = { "1.1": Binary, "10": Circuit
 
 type Progress = { mastered: number; total: number; percent: number };
 
-// Student home: continue card, the two main topics, then every other topic folded away.
+// Student home: a welcome banner with progress and quick actions, the two main topics,
+// then every other topic folded away.
 export default async function StudentHome() {
   const user = await requireUser("STUDENT");
 
-  const [objectives, masteryRows, lastAttempt, lastChat] = await Promise.all([
+  const [student, objectives, masteryRows, lastAttempt, lastChat, answerCount, chatCount] = await Promise.all([
+    db.user.findUniqueOrThrow({ where: { id: user.userId }, select: { className: true } }),
     db.objective.findMany({ select: { id: true, subtopicId: true } }),
     // Only this student's own rows: students never see anyone else's data.
     db.mastery.findMany({ where: { studentId: user.userId }, select: { objectiveId: true, status: true } }),
@@ -31,6 +44,8 @@ export default async function StudentHome() {
       orderBy: { updatedAt: "desc" },
       select: { updatedAt: true, topicKey: true },
     }),
+    db.attempt.count({ where: { studentId: user.userId } }),
+    db.tutorSession.count({ where: { studentId: user.userId } }),
   ]);
 
   // How many objectives in each unit this student has mastered.
@@ -57,49 +72,59 @@ export default async function StudentHome() {
   const otherUnits = units.filter((unit) => !unit.isMain);
   const topicNames = [...new Set(otherUnits.map((unit) => unit.topic))];
 
+  const stats = [
+    { label: "Objectives mastered", value: `${masteredIds.size} / ${objectives.length}`, icon: Target },
+    { label: "Questions answered", value: String(answerCount), icon: ClipboardCheck },
+    { label: "Tutor chats", value: String(chatCount), icon: MessageCircle },
+  ];
+
   return (
-    <main className={`${pageContainer} space-y-8`}>
-      <div>
-        <h1 className="text-2xl font-bold sm:text-3xl">Hi, {user.name.split(" ")[0]}</h1>
-        <p className="mt-1 text-slate-600">Pick a topic, learn it, practise with the tutor, then check yourself.</p>
-      </div>
+    <main className="mx-auto w-full max-w-5xl space-y-10 px-4 py-6 sm:py-8">
+      {/* ---------- Welcome banner ---------- */}
+      {/* A white card like the rest of the page, with a soft orange tint on the left. */}
+      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="bg-gradient-to-r from-orange-50 via-white to-white p-5 sm:p-8">
+          <p className="text-sm font-semibold text-orange-700">
+            IGCSE Computer Science 0478 · Class {student.className}
+          </p>
+          <h1 className="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">Welcome back, {user.name.split(" ")[0]}</h1>
+          <p className="mt-2 max-w-xl text-slate-600">
+            Learn a topic, practise with the tutor, then take a check to see what you have mastered.
+          </p>
 
-      {/* Quick starts: continue studying, or just chat with the tutor */}
-      <div className="grid gap-3 sm:grid-cols-[3fr_2fr]">
-        <Link
-          href={`/student/topic/${continueUnit.key}`}
-          className="flex min-w-0 items-center gap-4 rounded-2xl bg-orange-700 p-4 text-white shadow-sm transition-colors hover:bg-orange-800 sm:p-5"
-        >
-          <CirclePlay className="h-10 w-10 shrink-0" aria-hidden />
-          <span className="min-w-0 flex-1">
-            <span className="block text-sm text-orange-100">{lastUnitKey ? "Continue where you left off" : "Start here"}</span>
-            <span className="block truncate text-lg font-semibold">
-              {continueUnit.key} {continueUnit.title}
-            </span>
-          </span>
-          <ArrowRight className="h-5 w-5 shrink-0" aria-hidden />
-        </Link>
-        <Link
-          href="/student/tutor"
-          className="flex min-w-0 items-center gap-4 rounded-2xl border-2 border-orange-200 bg-white p-4 shadow-sm transition-colors hover:border-orange-400 sm:p-5"
-        >
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-100 text-orange-700">
-            <MessageCircle className="h-5 w-5" aria-hidden />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-lg font-semibold">Chat with the tutor</span>
-            <span className="block truncate text-sm text-slate-600">Ask about any topic</span>
-          </span>
-          <ArrowRight className="h-5 w-5 shrink-0 text-slate-400" aria-hidden />
-        </Link>
-      </div>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <Link href={`/student/topic/${continueUnit.key}`} className={`${buttonPrimary} min-w-0 px-5 py-3 text-base`}>
+              <span className="truncate">
+                {lastUnitKey ? "Continue" : "Start"}: {continueUnit.key} {continueUnit.title}
+              </span>
+              <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
+            </Link>
+            <Link href="/student/tutor?back=/student" className={`${buttonSecondary} px-5 py-3 text-base`}>
+              <MessageCircle className="h-4 w-4 text-orange-700" aria-hidden />
+              Chat with the tutor
+            </Link>
+          </div>
+        </div>
 
-      {/* The two main topics */}
+        {/* Progress numbers along the bottom of the card */}
+        <div className="grid grid-cols-3 divide-x divide-slate-100 border-t border-slate-100">
+          {stats.map((stat) => (
+            <div key={stat.label} className="flex flex-col items-center gap-1 px-2 py-4 text-center sm:flex-row sm:justify-center sm:gap-3 sm:px-6">
+              <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-700 sm:flex">
+                <stat.icon className="h-5 w-5" aria-hidden />
+              </span>
+              <div className="sm:text-left">
+                <p className="text-lg font-bold text-slate-900 sm:text-xl">{stat.value}</p>
+                <p className="text-xs text-slate-500">{stat.label}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ---------- The two main topics ---------- */}
       <section>
-        <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
-          <Star className="h-5 w-5 text-orange-600" aria-hidden />
-          Main topics
-        </h2>
+        <SectionHeading icon={Star} title="Main topics" text="The two topics your class is focusing on this term." />
         <div className="grid gap-4 sm:grid-cols-2">
           {mainUnits.map((unit) => (
             <MainTopicCard key={unit.key} unit={unit} progress={progressFor(unit.key)} />
@@ -107,12 +132,9 @@ export default async function StudentHome() {
         </div>
       </section>
 
-      {/* Every other topic, folded away. name="topics" means only one can be open at a time. */}
+      {/* ---------- Every other topic, folded away. name="topics" means only one can be open at a time. ---------- */}
       <section>
-        <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
-          <Layers className="h-5 w-5 text-orange-600" aria-hidden />
-          All topics
-        </h2>
+        <SectionHeading icon={Layers} title="All topics" text="Every other part of the syllabus, with a guide, the tutor and a check." />
         <div className="space-y-2">
           {topicNames.map((topicName) => {
             const topicUnits = otherUnits.filter((unit) => unit.topic === topicName);
@@ -128,12 +150,10 @@ export default async function StudentHome() {
 
             return (
               <details key={topicName} name="topics" className="group rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4">
+                <summary className="flex list-none items-center justify-between gap-3 p-4 hover:bg-slate-50">
                   <span>
                     <span className="block font-medium">{topicName}</span>
-                    <span className="text-sm text-slate-500">
-                      {topicUnits.length} {topicUnits.length === 1 ? "part" : "parts"}
-                    </span>
+                    <span className="text-sm text-slate-500">{topicUnits.length} parts</span>
                   </span>
                   <ChevronDown className="h-5 w-5 shrink-0 text-slate-400 transition-transform group-open:rotate-180" aria-hidden />
                 </summary>
@@ -151,12 +171,24 @@ export default async function StudentHome() {
   );
 }
 
+function SectionHeading({ icon: Icon, title, text }: { icon: typeof Star; title: string; text: string }) {
+  return (
+    <div className="mb-4">
+      <h2 className="flex items-center gap-2 text-lg font-semibold sm:text-xl">
+        <Icon className="h-5 w-5 text-orange-600" aria-hidden />
+        {title}
+      </h2>
+      <p className="mt-0.5 text-sm text-slate-600">{text}</p>
+    </div>
+  );
+}
+
 function MainTopicCard({ unit, progress }: { unit: Unit; progress: Progress }) {
   const Icon = MAIN_ICONS[unit.key] ?? Binary;
   return (
-    <div className={`${card} flex flex-col gap-4 border-orange-200`}>
-      <div className="flex items-start gap-3">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-700">
+    <div className={`${card} flex flex-col gap-5 transition-shadow hover:shadow-md`}>
+      <div className="flex items-start gap-4">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-100 text-orange-700">
           <Icon className="h-6 w-6" aria-hidden />
         </span>
         <div className="min-w-0">
@@ -167,8 +199,12 @@ function MainTopicCard({ unit, progress }: { unit: Unit; progress: Progress }) {
         </div>
       </div>
       <div>
+        <div className="mb-1.5 flex items-center justify-between text-sm">
+          <span className="text-slate-600">Progress</span>
+          <span className="font-semibold">{progress.percent}%</span>
+        </div>
         <ProgressBar percent={progress.percent} />
-        <p className="mt-1.5 text-sm text-slate-600">
+        <p className="mt-1.5 text-sm text-slate-500">
           {progress.mastered} of {progress.total} objectives mastered
         </p>
       </div>

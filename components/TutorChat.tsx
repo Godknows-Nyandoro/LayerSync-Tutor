@@ -26,9 +26,18 @@ type Props = {
   initialMessages?: Message[];
   onNewChat: () => void;
   onReplySaved?: (sessionId: string) => void; // tells the page a reply was saved, so it can refresh the chat list
+  newChatOnPhoneOnly?: boolean; // hide this "New chat" button on wide screens, where the chat list has one
 };
 
-export function TutorChat({ topicKey, topicTitle, initialSessionId = null, initialMessages = [], onNewChat, onReplySaved }: Props) {
+export function TutorChat({
+  topicKey,
+  topicTitle,
+  initialSessionId = null,
+  initialMessages = [],
+  onNewChat,
+  onReplySaved,
+  newChatOnPhoneOnly = false,
+}: Props) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [sessionId, setSessionId] = useState<string | null>(initialSessionId);
   const [input, setInput] = useState("");
@@ -110,7 +119,7 @@ export function TutorChat({ topicKey, topicTitle, initialSessionId = null, initi
         {messages.length > 0 && (
           <button
             onClick={onNewChat}
-            className="flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-sm text-slate-600 hover:bg-slate-100"
+            className={`${newChatOnPhoneOnly ? "flex md:hidden" : "flex"} shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-sm text-slate-600 hover:bg-slate-100`}
           >
             <RotateCcw className="h-4 w-4" aria-hidden />
             New chat
@@ -118,54 +127,57 @@ export function TutorChat({ topicKey, topicTitle, initialSessionId = null, initi
         )}
       </div>
 
-      <div ref={scrollBox} className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
-        {messages.length === 0 && (
-          <div className="mx-auto max-w-sm py-6 text-center">
-            <Lightbulb className="mx-auto h-8 w-8 text-orange-500" aria-hidden />
-            <p className="mt-2 font-medium">Stuck on {topicTitle}?</p>
-            <p className="mt-1 text-sm text-slate-600">
-              Ask a question or type your attempt. The tutor helps you work it out step by step.
-            </p>
-            <div className="mt-4 space-y-2">
-              {SUGGESTIONS.map((suggestion) => (
-                <button
-                  key={suggestion}
-                  onClick={() => send(suggestion)}
-                  className="block w-full rounded-xl border border-slate-200 px-3 py-2 text-left text-sm text-slate-700 hover:border-orange-300 hover:bg-orange-50"
-                >
-                  {suggestion}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {messages.map((message, index) => {
-          const isStudent = message.role === "user";
-          const isStreaming = busy && index === messages.length - 1;
-          const canFlag = !isStudent && message.replyIndex !== undefined && sessionId && !isStreaming;
-          return (
-            <div key={index} className={`flex gap-2 ${isStudent ? "flex-row-reverse" : ""}`}>
-              <span
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-                  isStudent ? "bg-slate-200 text-slate-600" : "bg-orange-100 text-orange-700"
-                }`}
-              >
-                {isStudent ? <UserRound className="h-4 w-4" aria-hidden /> : <Bot className="h-4 w-4" aria-hidden />}
-              </span>
-              <div className={`max-w-[80%] space-y-1 ${isStudent ? "items-end" : ""}`}>
-                <p
-                  className={`whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-base leading-relaxed ${
-                    isStudent ? "rounded-tr-sm bg-orange-700 text-white" : "rounded-tl-sm bg-slate-100 text-slate-800"
-                  }`}
-                >
-                  {message.content || <span className="animate-pulse text-slate-400">Thinking...</span>}
-                </p>
-                {canFlag && <FlagButton sessionId={sessionId} messageIndex={message.replyIndex!} />}
+      <div ref={scrollBox} className="flex-1 overflow-y-auto px-4 py-4">
+        {/* max-w-3xl keeps lines short enough to read comfortably on a wide screen */}
+        <div className="mx-auto max-w-3xl space-y-4">
+          {messages.length === 0 && (
+            <div className="mx-auto max-w-sm py-6 text-center">
+              <Lightbulb className="mx-auto h-8 w-8 text-orange-500" aria-hidden />
+              <p className="mt-2 font-medium">Stuck on {topicTitle}?</p>
+              <p className="mt-1 text-sm text-slate-600">
+                Ask a question or type your attempt. The tutor helps you work it out step by step.
+              </p>
+              <div className="mt-4 space-y-2">
+                {SUGGESTIONS.map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    onClick={() => send(suggestion)}
+                    className="block w-full rounded-xl border border-slate-200 px-3 py-2 text-left text-sm text-slate-700 hover:border-orange-300 hover:bg-orange-50"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
               </div>
             </div>
-          );
-        })}
+          )}
+
+          {messages.map((message, index) => {
+            const isStudent = message.role === "user";
+            const isStreaming = busy && index === messages.length - 1;
+            const canFlag = !isStudent && message.replyIndex !== undefined && sessionId && !isStreaming;
+            return (
+              <div key={index} className={`flex gap-2 ${isStudent ? "flex-row-reverse" : ""}`}>
+                <span
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                    isStudent ? "bg-slate-200 text-slate-600" : "bg-orange-100 text-orange-700"
+                  }`}
+                >
+                  {isStudent ? <UserRound className="h-4 w-4" aria-hidden /> : <Bot className="h-4 w-4" aria-hidden />}
+                </span>
+                <div className={`max-w-[80%] space-y-1 ${isStudent ? "items-end" : ""}`}>
+                  <p
+                    className={`whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-base leading-relaxed ${
+                      isStudent ? "rounded-tr-sm bg-orange-700 text-white" : "rounded-tl-sm bg-slate-100 text-slate-800"
+                    }`}
+                  >
+                    {message.content || <span className="animate-pulse text-slate-400">Thinking...</span>}
+                  </p>
+                  {canFlag && <FlagButton sessionId={sessionId} messageIndex={message.replyIndex!} />}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <form
@@ -173,7 +185,7 @@ export function TutorChat({ topicKey, topicTitle, initialSessionId = null, initi
           event.preventDefault();
           send(input);
         }}
-        className="flex gap-2 border-t border-slate-100 p-3"
+        className="mx-auto flex w-full max-w-3xl gap-2 border-t border-slate-100 p-3 md:border-t-0 md:pb-4"
       >
         <input
           value={input}

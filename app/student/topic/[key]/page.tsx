@@ -31,7 +31,8 @@ export default async function TopicPage({
   const topic = findUnit(key);
   if (!topic) notFound();
   const initialTab = TAB_KEYS.includes(tab as TabKey) ? (tab as TabKey) : "learn";
-  const tutorHref = `/student/tutor?topic=${topic.key}`; // a new tutor chat about this topic
+  // A new tutor chat about this topic; "back" brings the student back to this page.
+  const tutorHref = `/student/tutor?topic=${topic.key}&back=${encodeURIComponent(`/student/topic/${topic.key}`)}`;
 
   const [guide, questions, objectives, masteryRows] = await Promise.all([
     // status: "APPROVED" means a draft guide is never sent to a student.

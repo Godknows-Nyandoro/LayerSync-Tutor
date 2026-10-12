@@ -12,3 +12,8 @@ body {
   outline: 2px solid #c2410c; /* orange-700 */
   outline-offset: 2px;
 }
+
+/* Rounded outline on the clickable row of folding sections, instead of a sharp rectangle. */
+summary {
+  border-radius: 0.75rem;
+}

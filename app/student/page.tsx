@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Binary, ChevronDown, ChevronRight, CircuitBoard, CirclePlay, Layers, Star } from "lucide-react";
+import { ArrowRight, Binary, ChevronDown, ChevronRight, CircuitBoard, CirclePlay, Layers, MessageCircle, Star } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { findUnit, mainUnits, units, type Unit } from "@/data/topics";
@@ -64,20 +64,35 @@ export default async function StudentHome() {
         <p className="mt-1 text-slate-600">Pick a topic, learn it, practise with the tutor, then check yourself.</p>
       </div>
 
-      {/* Continue where you left off */}
-      <Link
-        href={`/student/topic/${continueUnit.key}`}
-        className="flex items-center gap-4 rounded-2xl bg-orange-700 p-4 text-white shadow-sm transition-colors hover:bg-orange-800 sm:p-5"
-      >
-        <CirclePlay className="h-10 w-10 shrink-0" aria-hidden />
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm text-orange-100">{lastUnitKey ? "Continue where you left off" : "Start here"}</span>
-          <span className="block truncate text-lg font-semibold">
-            {continueUnit.key} {continueUnit.title}
+      {/* Quick starts: continue studying, or just chat with the tutor */}
+      <div className="grid gap-3 sm:grid-cols-[3fr_2fr]">
+        <Link
+          href={`/student/topic/${continueUnit.key}`}
+          className="flex min-w-0 items-center gap-4 rounded-2xl bg-orange-700 p-4 text-white shadow-sm transition-colors hover:bg-orange-800 sm:p-5"
+        >
+          <CirclePlay className="h-10 w-10 shrink-0" aria-hidden />
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm text-orange-100">{lastUnitKey ? "Continue where you left off" : "Start here"}</span>
+            <span className="block truncate text-lg font-semibold">
+              {continueUnit.key} {continueUnit.title}
+            </span>
           </span>
-        </span>
-        <ArrowRight className="h-5 w-5 shrink-0" aria-hidden />
-      </Link>
+          <ArrowRight className="h-5 w-5 shrink-0" aria-hidden />
+        </Link>
+        <Link
+          href="/student/tutor"
+          className="flex min-w-0 items-center gap-4 rounded-2xl border-2 border-orange-200 bg-white p-4 shadow-sm transition-colors hover:border-orange-400 sm:p-5"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-100 text-orange-700">
+            <MessageCircle className="h-5 w-5" aria-hidden />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-lg font-semibold">Chat with the tutor</span>
+            <span className="block truncate text-sm text-slate-600">Ask about any topic</span>
+          </span>
+          <ArrowRight className="h-5 w-5 shrink-0 text-slate-400" aria-hidden />
+        </Link>
+      </div>
 
       {/* The two main topics */}
       <section>

@@ -4,10 +4,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FileText, House, LayoutDashboard, Library } from "lucide-react";
+import { FileText, House, LayoutDashboard, Library, MessageCircle } from "lucide-react";
 
 // Icons are picked by name, because a Server Component cannot pass an icon component to a Client Component.
-const ICONS = { home: House, dashboard: LayoutDashboard, guides: FileText, syllabus: Library };
+const ICONS = { home: House, dashboard: LayoutDashboard, guides: FileText, syllabus: Library, tutor: MessageCircle };
 
 type Props = {
   href: string;

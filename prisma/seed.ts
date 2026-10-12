@@ -11,6 +11,22 @@ import { questions, type SeedQuestion } from "../data/questions";
 import { guides } from "../data/guides";
 import { history } from "../data/history";
 
+// Realistic first questions for the fake tutor chats, so the chat list looks like real use.
+const SEED_CHAT_STARTERS: Record<string, { question: string; reply: string }[]> = {
+  "1.1": [
+    { question: "How do I convert 200 to binary?", reply: "Let's work it out together. What is the biggest place value that fits into 200?" },
+    { question: "Why is hexadecimal used for MAC addresses?", reply: "Good question. How many binary digits does one hex digit stand for?" },
+    { question: "I don't get two's complement", reply: "No problem. What is special about the leftmost column in two's complement?" },
+    { question: "What does overflow mean?", reply: "Think about an 8-bit register. What is the biggest number it can hold?" },
+    { question: "How do I do a logical left shift?", reply: "Try it on 00000101. What happens to each bit when it moves one place left?" },
+  ],
+  "10": [
+    { question: "What is the difference between NAND and AND?", reply: "Have a look at the symbols. What does the small circle on the output mean?" },
+    { question: "How do I fill in a truth table with 3 inputs?", reply: "Start with the inputs. How many rows do you need for three inputs?" },
+    { question: "Can you help me with XOR?", reply: "Sure. When do you think XOR gives an output of 1?" },
+  ],
+};
+
 // A date `days` days before now.
 function daysAgo(days: number) {
   return new Date(Date.now() - days * 24 * 60 * 60 * 1000);
@@ -171,13 +187,15 @@ async function seedHistory() {
     // Short fake tutor chats, spread over the last few days.
     for (const [topicKey, count] of Object.entries(plan.tutorSessions)) {
       for (let i = 0; i < count; i++) {
+        const starters = SEED_CHAT_STARTERS[topicKey];
+        const starter = starters[i % starters.length]; // take the starters in turn
         await db.tutorSession.create({
           data: {
             studentId: user.id,
             topicKey,
             messages: [
-              { role: "user", content: "Can you help me with this topic?" },
-              { role: "assistant", content: "Of course. What have you tried so far?" },
+              { role: "user", content: starter.question },
+              { role: "assistant", content: starter.reply },
             ],
             inputTokens: 1200,
             outputTokens: 150,

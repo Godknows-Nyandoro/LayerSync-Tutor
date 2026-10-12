@@ -67,7 +67,7 @@ function Parts({ parts }: { parts: { label: string; detail: string }[] }) {
           className="flex-1 border-y-2 border-r-2 border-orange-600 bg-white p-2 text-center first:rounded-l-xl first:border-l-2 last:rounded-r-xl"
         >
           <p className="text-sm font-bold">{part.label}</p>
-          {part.detail && <p className="mt-1 text-xs text-gray-600">{part.detail}</p>}
+          {part.detail && <p className="mt-1 text-xs text-slate-600">{part.detail}</p>}
         </div>
       ))}
     </div>

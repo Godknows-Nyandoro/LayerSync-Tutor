@@ -19,7 +19,7 @@ export function BinaryPlaceValues() {
               {value}
             </text>
             {/* the bit */}
-            <rect x={x} y={30} width={cell - 4} height={36} rx={4} fill={isOne ? "#1d4ed8" : "#f3f4f6"} stroke="#9ca3af" />
+            <rect x={x} y={30} width={cell - 4} height={36} rx={4} fill={isOne ? "#c2410c" : "#f3f4f6"} stroke="#9ca3af" />
             <text x={x + cell / 2 - 2} y={54} textAnchor="middle" fontSize="18" fontWeight="bold" fill={isOne ? "white" : "#6b7280"}>
               {bits[i]}
             </text>
@@ -49,7 +49,7 @@ export function HexNibbles() {
         const x = 20 + i * 160;
         return (
           <g key={nibble.bits}>
-            <rect x={x} y={26} width={140} height={34} rx={4} fill="#eff6ff" stroke="#1d4ed8" />
+            <rect x={x} y={26} width={140} height={34} rx={4} fill="#fff7ed" stroke="#c2410c" />
             {/* each bit with its place value (8, 4, 2, 1) directly above it */}
             {nibble.bits.split("").map((bit, j) => (
               <g key={j}>
@@ -67,7 +67,7 @@ export function HexNibbles() {
             <text x={x + 70} y={116} textAnchor="middle" fontSize="12" fill="#4b5563">
               {nibble.sum}
             </text>
-            <text x={x + 70} y={150} textAnchor="middle" fontSize="26" fontWeight="bold" fill="#1d4ed8">
+            <text x={x + 70} y={150} textAnchor="middle" fontSize="26" fontWeight="bold" fill="#c2410c">
               {nibble.hex}
             </text>
           </g>

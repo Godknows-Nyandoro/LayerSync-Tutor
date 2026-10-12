@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft, CircleCheck, EyeOff, FileText, PenLine, Sparkles, TriangleAlert } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { findUnit } from "@/data/topics";
 import type { GuideSection } from "@/data/guides";
 import { GuideView } from "@/components/GuideView";
 import { SubmitButton } from "@/components/SubmitButton";
+import { buttonPrimary, buttonSecondary, buttonSuccess, card, pageContainer } from "@/components/ui/styles";
 import { approveGuide, generateDraft, unpublishGuide } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -28,63 +30,78 @@ export default async function GuidePreview({
   const guide = await db.guide.findUnique({ where: { topicKey: unit.key } });
   const isLive = guide?.status === "APPROVED";
 
-  const boxStyle = !guide
-    ? "border-gray-300 bg-gray-50"
+  const status = !guide
+    ? { label: "No guide yet", icon: FileText, box: "border-slate-200 bg-white", text: "text-slate-700" }
     : isLive
-      ? "border-green-300 bg-green-50"
-      : "border-amber-300 bg-amber-50";
+      ? { label: "Live for students", icon: CircleCheck, box: "border-green-200 bg-green-50", text: "text-green-800" }
+      : { label: "Draft: students cannot see this yet", icon: PenLine, box: "border-amber-200 bg-amber-50", text: "text-amber-800" };
+  const StatusIcon = status.icon;
 
   return (
-    <main className="mx-auto max-w-2xl space-y-4 p-4">
-      <Link href="/teacher/guides" className="text-sm text-blue-700">
-        ← All guides
+    <main className={`${pageContainer} space-y-5`}>
+      <Link href="/teacher/guides" className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900">
+        <ArrowLeft className="h-4 w-4" aria-hidden />
+        All guides
       </Link>
-      <h1 className="text-2xl font-bold">
-        {unit.key} {unit.title}
-      </h1>
 
-      <section className={`rounded-lg border p-3 ${boxStyle}`}>
-        <p className="text-sm">
-          Status:{" "}
-          <strong>
-            {!guide ? "No guide yet" : isLive ? "Live for students" : "Draft (students cannot see this)"}
-          </strong>
+      <div>
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{unit.topic}</p>
+        <h1 className="text-2xl font-bold sm:text-3xl">
+          {unit.key} {unit.title}
+        </h1>
+      </div>
+
+      {/* Status and actions */}
+      <section className={`rounded-2xl border p-4 sm:p-5 ${status.box}`}>
+        <p className={`flex items-center gap-2 font-semibold ${status.text}`}>
+          <StatusIcon className="h-5 w-5" aria-hidden />
+          {status.label}
         </p>
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
           {/* .bind(null, unit.key) gives the action its topicKey argument when the form is submitted */}
-          {guide && isLive && (
-            <form action={unpublishGuide.bind(null, unit.key)}>
-              <SubmitButton label="Unpublish" pendingLabel="Saving..." className="rounded border bg-white px-3 py-1 text-sm" />
-            </form>
-          )}
           {guide && !isLive && (
             <form action={approveGuide.bind(null, unit.key)}>
-              <SubmitButton
-                label="Approve and release to students"
-                pendingLabel="Saving..."
-                className="rounded bg-green-700 px-3 py-1 text-sm font-medium text-white"
-              />
+              <SubmitButton label="Approve and release to students" pendingLabel="Saving..." className={`${buttonSuccess} w-full`} />
+            </form>
+          )}
+          {guide && isLive && (
+            <form action={unpublishGuide.bind(null, unit.key)}>
+              <SubmitButton label="Unpublish (hide from students)" pendingLabel="Saving..." className={`${buttonSecondary} w-full`} />
             </form>
           )}
           <form action={generateDraft.bind(null, unit.key)}>
             <SubmitButton
               label={guide ? "Generate a new draft with AI" : "Generate a draft with AI"}
               pendingLabel="Writing draft (about 20 seconds)..."
-              className="rounded border bg-white px-3 py-1 text-sm"
+              className={`${guide ? buttonSecondary : buttonPrimary} w-full`}
             />
           </form>
         </div>
-        <p className="mt-2 text-xs text-gray-600">
+        <p className="mt-3 flex items-start gap-1.5 text-xs text-slate-600">
+          {guide ? <EyeOff className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden /> : <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />}
           {guide
             ? "A new AI draft replaces this guide and hides it from students until you approve it."
             : "The draft is written from this topic's syllabus objectives. You review it before students see it."}
         </p>
         {error && (
-          <p className="mt-2 text-sm text-red-700">The AI could not write a usable draft. Please try again.</p>
+          <p className="mt-3 flex items-center gap-1.5 rounded-xl bg-red-50 p-3 text-sm text-red-700">
+            <TriangleAlert className="h-4 w-4 shrink-0" aria-hidden />
+            The AI could not write a usable draft. Please try again.
+          </p>
         )}
       </section>
 
-      {guide && <GuideView sections={guide.sections as GuideSection[]} />}
+      {guide ? (
+        <>
+          <h2 className="text-lg font-semibold">Preview ({(guide.sections as GuideSection[]).length} sections)</h2>
+          <GuideView sections={guide.sections as GuideSection[]} />
+        </>
+      ) : (
+        <div className={`${card} py-10 text-center text-slate-500`}>
+          <FileText className="mx-auto h-10 w-10 text-slate-300" aria-hidden />
+          <p className="mt-2">No guide yet. Generate a draft to see a preview here.</p>
+        </div>
+      )}
     </main>
   );
 }

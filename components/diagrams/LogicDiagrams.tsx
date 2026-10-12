@@ -110,8 +110,8 @@ export function ExampleCircuit() {
       <text x={292} y={85} fontSize="14" fontWeight="bold">X</text>
 
       {/* intermediate results, to help fill in a truth table */}
-      <text x={130} y={30} fontSize="11" fill="#1d4ed8">A AND B</text>
-      <text x={128} y={150} fontSize="11" fill="#1d4ed8">NOT C</text>
+      <text x={130} y={30} fontSize="11" fill="#c2410c">A AND B</text>
+      <text x={128} y={150} fontSize="11" fill="#c2410c">NOT C</text>
     </svg>
   );
 }

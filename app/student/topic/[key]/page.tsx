@@ -7,7 +7,6 @@ import { findUnit } from "@/data/topics";
 import type { GuideSection } from "@/data/guides";
 import { StudyTabs, type TabKey } from "@/components/study/StudyTabs";
 import { GuideStepper } from "@/components/study/GuideStepper";
-import { TutorChat } from "@/components/TutorChat";
 import { CheckQuiz } from "@/components/CheckQuiz";
 import { MasteryChip } from "@/components/MasteryChip";
 import { ProgressBar } from "@/components/ui/ProgressBar";
@@ -15,9 +14,9 @@ import { card, pageContainer } from "@/components/ui/styles";
 
 export const dynamic = "force-dynamic";
 
-const TAB_KEYS: TabKey[] = ["learn", "tutor", "check", "progress"];
+const TAB_KEYS: TabKey[] = ["learn", "check", "progress"];
 
-// One unit for a student, split into tabs: Learn (guide), Ask tutor, Check, Progress.
+// One unit for a student, split into tabs: Learn (guide), Check, Progress, plus a link to the tutor page.
 // The URL is /student/topic/<unit key>?tab=<tab>, e.g. /student/topic/1.1?tab=check
 export default async function TopicPage({
   params,
@@ -32,6 +31,7 @@ export default async function TopicPage({
   const topic = findUnit(key);
   if (!topic) notFound();
   const initialTab = TAB_KEYS.includes(tab as TabKey) ? (tab as TabKey) : "learn";
+  const tutorHref = `/student/tutor?topic=${topic.key}`; // a new tutor chat about this topic
 
   const [guide, questions, objectives, masteryRows] = await Promise.all([
     // status: "APPROVED" means a draft guide is never sent to a student.
@@ -74,12 +74,13 @@ export default async function TopicPage({
 
       <StudyTabs
         initialTab={initialTab}
+        tutorHref={tutorHref}
         panels={[
           {
             key: "learn",
             label: "Learn",
             content: guide ? (
-              <GuideStepper sections={guide.sections as GuideSection[]} />
+              <GuideStepper sections={guide.sections as GuideSection[]} tutorHref={tutorHref} />
             ) : (
               <div className={`${card} py-10 text-center`}>
                 <BookOpen className="mx-auto h-10 w-10 text-slate-300" aria-hidden />
@@ -90,7 +91,6 @@ export default async function TopicPage({
               </div>
             ),
           },
-          { key: "tutor", label: "Ask tutor", content: <TutorChat topicKey={topic.key} topicTitle={topic.title} /> },
           { key: "check", label: "Check", content: <CheckQuiz topicKey={topic.key} questions={questions} /> },
           {
             key: "progress",

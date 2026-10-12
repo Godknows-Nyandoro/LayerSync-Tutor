@@ -25,7 +25,10 @@ export function AppHeader({ name, role }: { name: string; role: "STUDENT" | "TEA
               <NavLink href="/teacher/guides" label="Guides" icon="guides" alsoActiveOn={["/teacher/guides/"]} />
             </>
           ) : (
-            <NavLink href="/student" label="My topics" icon="home" alsoActiveOn={["/student/topic"]} />
+            <>
+              <NavLink href="/student" label="My topics" icon="home" alsoActiveOn={["/student/topic"]} />
+              <NavLink href="/student/tutor" label="Tutor" icon="tutor" />
+            </>
           )}
           <NavLink href="/syllabus" label="Syllabus" icon="syllabus" />
           <span className="mx-1 hidden h-6 w-px bg-slate-200 md:block" />

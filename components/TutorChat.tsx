@@ -15,9 +15,22 @@ const SUGGESTIONS = [
   "Can you check my working?",
 ];
 
-export function TutorChat({ topicKey, topicTitle }: { topicKey: string; topicTitle: string }) {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [sessionId, setSessionId] = useState<string | null>(null);
+// Shown when the server cannot be reached (e.g. the free database is waking up).
+const BUSY_MESSAGE =
+  "Sorry, the system is a little busy right now. We use a free database that can take a few seconds to wake up. Please wait a moment and send your message again.";
+
+type Props = {
+  topicKey: string;
+  topicTitle: string;
+  initialSessionId?: string | null; // set when opening an earlier chat
+  initialMessages?: Message[];
+  onNewChat: () => void;
+  onReplySaved?: (sessionId: string) => void; // tells the page a reply was saved, so it can refresh the chat list
+};
+
+export function TutorChat({ topicKey, topicTitle, initialSessionId = null, initialMessages = [], onNewChat, onReplySaved }: Props) {
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [sessionId, setSessionId] = useState<string | null>(initialSessionId);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const scrollBox = useRef<HTMLDivElement>(null);
@@ -36,20 +49,28 @@ export function TutorChat({ topicKey, topicTitle }: { topicKey: string; topicTit
     // Show the student's message, plus an empty tutor message we fill in as the reply streams.
     setMessages((old) => [...old, { role: "user", content: text }, { role: "assistant", content: "" }]);
 
-    const response = await fetch("/api/tutor", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ topicKey, sessionId, message: text }),
-    });
-
-    if (!response.ok || !response.body) {
-      const error = await response.text();
-      setMessages((old) => [...old.slice(0, -1), { role: "assistant", content: error }]);
+    // Replace the empty tutor message with an error message.
+    function showError(content: string) {
+      setMessages((old) => [...old.slice(0, -1), { role: "assistant", content }]);
       setBusy(false);
-      return;
     }
 
-    setSessionId(response.headers.get("X-Session-Id"));
+    let response: Response;
+    try {
+      response = await fetch("/api/tutor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topicKey, sessionId, message: text }),
+      });
+    } catch {
+      return showError(BUSY_MESSAGE); // no connection at all
+    }
+
+    if (response.status >= 500 || !response.body) return showError(BUSY_MESSAGE);
+    if (!response.ok) return showError(await response.text()); // e.g. "message too long"
+
+    const newSessionId = response.headers.get("X-Session-Id")!;
+    setSessionId(newSessionId);
     const replyIndex = Number(response.headers.get("X-Reply-Index"));
     setMessages((old) => [...old.slice(0, -1), { ...old[old.length - 1], replyIndex }]);
 
@@ -66,29 +87,31 @@ export function TutorChat({ topicKey, topicTitle }: { topicKey: string; topicTit
       });
     }
     setBusy(false);
-  }
-
-  function newChat() {
-    setMessages([]);
-    setSessionId(null);
+    onReplySaved?.(newSessionId);
   }
 
   return (
     // A fixed-height panel: messages scroll inside it, and the typing box stays at the bottom.
     // 100dvh minus about 19rem = the screen height left under the header, title and tabs.
-    <section className="flex h-[calc(100dvh-19rem)] min-h-[380px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm sm:h-[600px]">
+    // It fills the height its parent gives it: messages scroll inside, and the typing box stays at the bottom.
+    <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
-        <div className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-100 text-orange-700">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-100 text-orange-700">
             <Bot className="h-5 w-5" aria-hidden />
           </span>
-          <div>
-            <h2 className="text-sm font-semibold">Tutor</h2>
+          <div className="min-w-0">
+            <h2 className="truncate text-sm font-semibold">
+              {topicKey} {topicTitle}
+            </h2>
             <p className="text-xs text-slate-500">Gives hints, not answers</p>
           </div>
         </div>
         {messages.length > 0 && (
-          <button onClick={newChat} className="flex items-center gap-1 rounded-lg px-2 py-1 text-sm text-slate-600 hover:bg-slate-100">
+          <button
+            onClick={onNewChat}
+            className="flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-sm text-slate-600 hover:bg-slate-100"
+          >
             <RotateCcw className="h-4 w-4" aria-hidden />
             New chat
           </button>

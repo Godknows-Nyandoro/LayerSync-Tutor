@@ -2,17 +2,16 @@
 // The guide, one section at a time, with Back / Next buttons.
 // Short screens are easier to focus on than one long page.
 
+import Link from "next/link";
 import { useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, MessageCircle } from "lucide-react";
 import type { GuideSection } from "@/data/guides";
 import { GuideSectionCard } from "@/components/GuideView";
 import { buttonPrimary, buttonSecondary } from "@/components/ui/styles";
-import { useStudyTabs } from "./StudyTabs";
 
-export function GuideStepper({ sections }: { sections: GuideSection[] }) {
+export function GuideStepper({ sections, tutorHref }: { sections: GuideSection[]; tutorHref: string }) {
   const [step, setStep] = useState(0);
   const topRef = useRef<HTMLDivElement>(null);
-  const tabs = useStudyTabs();
   const isLast = step === sections.length - 1;
 
   function goTo(index: number) {
@@ -48,10 +47,10 @@ export function GuideStepper({ sections }: { sections: GuideSection[] }) {
           Back
         </button>
         {isLast ? (
-          <button onClick={() => tabs?.open("tutor")} className={buttonPrimary}>
+          <Link href={tutorHref} className={buttonPrimary}>
             <MessageCircle className="h-4 w-4" aria-hidden />
             Practise with the tutor
-          </button>
+          </Link>
         ) : (
           <button onClick={() => goTo(step + 1)} className={buttonPrimary}>
             Next

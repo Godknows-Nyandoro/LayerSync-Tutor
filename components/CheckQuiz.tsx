@@ -2,13 +2,13 @@
 // The check: one question per screen, then a results screen with marks and feedback.
 // Runs in the browser so it can move between questions and show the results.
 
+import Link from "next/link";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, ChevronDown, CircleAlert, CircleCheck, CircleX, LoaderCircle, MessageCircle, RotateCcw, Trophy } from "lucide-react";
 import { MasteryChip, type Status } from "./MasteryChip";
 import { ProgressBar } from "./ui/ProgressBar";
 import { buttonPrimary, buttonSecondary, card } from "./ui/styles";
-import { useStudyTabs } from "./study/StudyTabs";
 
 // Only what the student needs to see: no answers or mark schemes.
 export type QuizQuestion = {
@@ -34,7 +34,6 @@ export function CheckQuiz({ topicKey, questions }: { topicKey: string; questions
   const [error, setError] = useState("");
   const topRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const tabs = useStudyTabs();
 
   if (questions.length === 0) {
     return <p className={`${card} text-slate-600`}>There is no check for this topic yet.</p>;
@@ -56,15 +55,21 @@ export function CheckQuiz({ topicKey, questions }: { topicKey: string; questions
   async function submit() {
     setPhase("marking");
     setError("");
-    const response = await fetch("/api/check", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ topicKey, answers }),
-    });
-    const data = await response.json();
 
-    if (!response.ok) {
-      setError(data.error);
+    let data;
+    try {
+      const response = await fetch("/api/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topicKey, answers }),
+      });
+      data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+    } catch {
+      // Usually the free database waking up. The answers are still on screen, so nothing is lost.
+      setError(
+        "Sorry, the system is a little busy. We use a free database that can take a few seconds to wake up. Your answers are still here: please press Submit again.",
+      );
       setPhase("answering");
       return;
     }
@@ -161,10 +166,10 @@ export function CheckQuiz({ topicKey, questions }: { topicKey: string; questions
             <RotateCcw className="h-4 w-4" aria-hidden />
             Try the check again
           </button>
-          <button onClick={() => tabs?.open("tutor")} className={buttonPrimary}>
+          <Link href={`/student/tutor?topic=${topicKey}`} className={buttonPrimary}>
             <MessageCircle className="h-4 w-4" aria-hidden />
             Ask the tutor about my mistakes
-          </button>
+          </Link>
         </div>
       </div>
     );

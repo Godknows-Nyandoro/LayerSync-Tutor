@@ -32,6 +32,9 @@ export default async function TeacherDashboard() {
       </div>
 
       <nav className="flex gap-4 text-sm">
+        <Link href="/teacher/guides" className="text-blue-700 underline">
+          Guides
+        </Link>
         <Link href="/syllabus" className="text-blue-700 underline">
           Syllabus
         </Link>

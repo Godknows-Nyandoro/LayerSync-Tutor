@@ -31,7 +31,7 @@ export default async function SyllabusPage() {
       <AppHeader name={user.name} role={user.role} />
       <main className={pageContainer}>
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100 text-orange-700">
             <Library className="h-5 w-5" aria-hidden />
           </span>
           <div>
@@ -59,7 +59,7 @@ export default async function SyllabusPage() {
               <div className="space-y-4 border-t border-slate-100 p-4">
                 {[...topic.subtopics].map(([subtopicTitle, items]) => (
                   <div key={subtopicTitle}>
-                    {subtopicTitle && <h2 className="mb-2 text-sm font-semibold text-indigo-700">{subtopicTitle}</h2>}
+                    {subtopicTitle && <h2 className="mb-2 text-sm font-semibold text-orange-700">{subtopicTitle}</h2>}
                     <ul className="space-y-2">
                       {items.map((objective) => (
                         <li key={objective.id} className="rounded-xl bg-slate-50 p-3 text-sm">

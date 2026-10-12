@@ -26,7 +26,7 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm space-y-4">
         <div className="text-center">
-          <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white">
+          <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-600 text-white">
             <GraduationCap className="h-7 w-7" aria-hidden />
           </span>
           <h1 className="mt-3 text-2xl font-bold">Sync Tutor</h1>
@@ -74,7 +74,7 @@ export default function LoginPage() {
 
         <details className={`${card} text-sm`}>
           <summary className="flex cursor-pointer items-center gap-2 font-medium text-slate-700">
-            <Info className="h-4 w-4 text-indigo-600" aria-hidden />
+            <Info className="h-4 w-4 text-orange-600" aria-hidden />
             Demo accounts
           </summary>
           <p className="mt-2 text-slate-500">

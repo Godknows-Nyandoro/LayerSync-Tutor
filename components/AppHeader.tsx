@@ -12,7 +12,7 @@ export function AppHeader({ name, role }: { name: string; role: "STUDENT" | "TEA
     <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-4">
         <Link href={home} className="flex items-center gap-2 font-bold text-slate-900">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-600 text-white">
             <GraduationCap className="h-5 w-5" aria-hidden />
           </span>
           <span className="hidden sm:inline">Sync Tutor</span>

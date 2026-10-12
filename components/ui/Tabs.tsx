@@ -20,7 +20,7 @@ export function Tabs({ tabs, active, baseHref }: { tabs: Tab[]; active: string; 
               href={`${baseHref}?tab=${tab.key}`}
               aria-current={isActive ? "page" : undefined}
               className={`flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                isActive ? "bg-white text-indigo-700 shadow-sm" : "text-slate-600 hover:text-slate-900"
+                isActive ? "bg-white text-orange-700 shadow-sm" : "text-slate-600 hover:text-slate-900"
               }`}
             >
               <Icon className="h-4 w-4" aria-hidden />

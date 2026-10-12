@@ -26,7 +26,7 @@ export function NavLink({ href, label, icon, alsoActiveOn = [] }: Props) {
       href={href}
       aria-current={isActive ? "page" : undefined}
       className={`flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors ${
-        isActive ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+        isActive ? "bg-orange-50 text-orange-700" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
       }`}
     >
       <Icon className="h-4 w-4" aria-hidden />

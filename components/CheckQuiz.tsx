@@ -5,7 +5,8 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, ChevronDown, CircleAlert, CircleCheck, CircleX, LoaderCircle, MessageCircle, RotateCcw, Trophy } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronDown, CircleAlert, CircleCheck, CircleX, MessageCircle, RotateCcw, Trophy } from "lucide-react";
+import { LogoLoader } from "./ui/LogoLoader";
 import { MasteryChip, type Status } from "./MasteryChip";
 import { ProgressBar } from "./ui/ProgressBar";
 import { buttonPrimary, buttonSecondary, card } from "./ui/styles";
@@ -92,10 +93,8 @@ export function CheckQuiz({ topicKey, questions }: { topicKey: string; questions
   // ---------- Marking: short answers are marked by AI, which takes a few seconds ----------
   if (phase === "marking") {
     return (
-      <div ref={topRef} className={`${card} scroll-mt-20 py-12 text-center`}>
-        <LoaderCircle className="mx-auto h-10 w-10 animate-spin text-orange-600" aria-hidden />
-        <p className="mt-3 font-medium">Marking your answers...</p>
-        <p className="text-sm text-slate-500">Short answers are checked against the mark scheme.</p>
+      <div ref={topRef} className={`${card} scroll-mt-20 text-center`}>
+        <LogoLoader label="Marking your answers. Short answers are checked against the mark scheme..." size="inline" />
       </div>
     );
   }

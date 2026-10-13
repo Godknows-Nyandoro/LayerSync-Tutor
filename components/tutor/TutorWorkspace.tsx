@@ -5,8 +5,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 import { ArrowLeft, MessageCircle, MessagesSquare, SquarePen } from "lucide-react";
 import { TutorChat } from "@/components/TutorChat";
+import { LinkPending } from "@/components/ui/LinkPending";
+import { LogoLoader, Spinner } from "@/components/ui/LogoLoader";
 
 export type ChatSummary = { id: string; title: string; preview: string; when: string };
 
@@ -24,6 +27,8 @@ type Props = {
 
 export function TutorWorkspace({ chats, selected, newTopicKey, showChatOnPhone, units, back, backLabel }: Props) {
   const router = useRouter();
+  // isPending is true while a new chat or topic is loading, so we can show the loader.
+  const [isPending, startTransition] = useTransition();
   const topicKey = selected?.topicKey ?? newTopicKey;
   const unit = units.find((u) => u.key === topicKey);
   const topicNames = [...new Set(units.map((u) => u.topic))];
@@ -34,7 +39,11 @@ export function TutorWorkspace({ chats, selected, newTopicKey, showChatOnPhone, 
   }
 
   function startNewChat(key: string) {
-    router.push(tutorUrl({ topic: key }));
+    startTransition(() => router.push(tutorUrl({ topic: key })));
+  }
+
+  function changeTopic(key: string) {
+    startTransition(() => router.replace(tutorUrl({ topic: key })));
   }
 
   // After each reply is saved: a brand-new chat moves to its own address (so it appears
@@ -80,9 +89,10 @@ export function TutorWorkspace({ chats, selected, newTopicKey, showChatOnPhone, 
             <h1 className="text-xl font-bold md:text-base">Your chats</h1>
             <button
               onClick={() => startNewChat(newTopicKey)}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-orange-700 px-3 py-2 text-sm font-semibold text-white hover:bg-orange-800"
+              disabled={isPending}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-orange-700 px-3 py-2 text-sm font-semibold text-white hover:bg-orange-800 disabled:opacity-60"
             >
-              <SquarePen className="h-4 w-4" aria-hidden />
+              {isPending ? <Spinner /> : <SquarePen className="h-4 w-4" aria-hidden />}
               New chat
             </button>
           </div>
@@ -102,7 +112,10 @@ export function TutorWorkspace({ chats, selected, newTopicKey, showChatOnPhone, 
                   >
                     <span className="flex items-center justify-between gap-2">
                       <span className="truncate text-sm font-semibold">{chat.title}</span>
-                      <span className="shrink-0 text-xs text-slate-400">{chat.when}</span>
+                      {/* The date turns into a spinner while this chat is opening */}
+                      <span className="shrink-0 text-xs text-slate-400">
+                        <LinkPending className="h-3.5 w-3.5 text-orange-600">{chat.when}</LinkPending>
+                      </span>
                     </span>
                     <span className="mt-0.5 block truncate text-sm text-slate-500">{chat.preview}</span>
                   </Link>
@@ -129,7 +142,8 @@ export function TutorWorkspace({ chats, selected, newTopicKey, showChatOnPhone, 
               <span className="shrink-0 font-medium text-slate-600">Topic</span>
               <select
                 value={topicKey}
-                onChange={(e) => router.replace(tutorUrl({ topic: e.target.value }))}
+                onChange={(e) => changeTopic(e.target.value)}
+                disabled={isPending}
                 className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-3 py-2 text-base sm:text-sm"
               >
                 {topicNames.map((topicName) => (
@@ -147,7 +161,13 @@ export function TutorWorkspace({ chats, selected, newTopicKey, showChatOnPhone, 
             </label>
           )}
 
-          <div className="min-h-0 flex-1">
+          <div className="relative min-h-0 flex-1">
+            {/* While a new chat or topic loads, cover the chat with the loader. */}
+            {isPending && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-white/85 backdrop-blur-sm">
+                <LogoLoader label="Starting a new chat..." size="inline" />
+              </div>
+            )}
             {/* key: switching to a different chat (or topic) starts the chat box fresh */}
             <TutorChat
               key={selected?.id ?? `new-${topicKey}`}

@@ -4,7 +4,7 @@ A learning companion for **Sync Academy** (a fictitious Cambridge IGCSE school),
 
 Students learn a topic, practise with an AI tutor that **gives hints instead of answers**, then take a check that updates their **mastery** of each syllabus objective. The teacher sees the whole class on a dashboard, approves AI-written guides before students can see them, and reviews tutor replies that students flagged.
 
-- **Live app:** _added after deployment_
+- **Live app:** https://layer-sync-tutor.vercel.app
 - **Repository:** https://github.com/Godknows-Nyandoro/LayerSync-Tutor
 
 ---

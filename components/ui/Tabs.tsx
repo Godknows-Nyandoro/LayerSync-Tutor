@@ -4,6 +4,7 @@
 
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
+import { LinkPending } from "./LinkPending";
 
 export type Tab = { key: string; label: string; icon: LucideIcon; count?: number };
 
@@ -23,7 +24,10 @@ export function Tabs({ tabs, active, baseHref }: { tabs: Tab[]; active: string; 
               isActive ? "bg-white text-orange-700 shadow-sm" : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            <Icon className="h-5 w-5 sm:h-4 sm:w-4" aria-hidden />
+            {/* The icon turns into a spinner while this tab is loading */}
+            <LinkPending className="h-5 w-5 sm:h-4 sm:w-4">
+              <Icon className="h-5 w-5 sm:h-4 sm:w-4" aria-hidden />
+            </LinkPending>
             <span>
               {tab.label}
               {tab.count !== undefined && tab.count > 0 && (

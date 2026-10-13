@@ -18,6 +18,9 @@ import {
 
 type StoredMessage = { role: "user" | "assistant"; content: string };
 
+// Vercel stops a server function after a time limit. Allow up to 60 seconds for the AI to reply.
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   // 1. Only logged-in students can use the tutor.
   const session = await getSession();

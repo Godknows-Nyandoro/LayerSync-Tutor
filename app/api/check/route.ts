@@ -10,6 +10,9 @@ import { getApprovedGuideText } from "@/lib/guides";
 import { MAX_ANSWER_CHARS, markMcq, markShortAnswer } from "@/lib/marking";
 import { updateMastery } from "@/lib/mastery";
 
+// Vercel stops a server function after a time limit. Allow up to 60 seconds for AI marking.
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   // 1. Only logged-in students can take a check.
   const session = await getSession();

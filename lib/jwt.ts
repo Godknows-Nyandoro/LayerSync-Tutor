@@ -1,4 +1,7 @@
-import { SignJWT, jwtVerify } from "jose";
+// Import only signing and verifying (not all of jose), so the middleware does not include
+// jose's encryption code, which the Edge runtime cannot run.
+import { SignJWT } from "jose/jwt/sign";
+import { jwtVerify } from "jose/jwt/verify";
 
 // What we store inside the login cookie.
 export type SessionPayload = {

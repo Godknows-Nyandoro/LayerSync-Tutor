@@ -12,6 +12,10 @@ import { approveGuide, generateDraft, unpublishGuide } from "../actions";
 
 export const dynamic = "force-dynamic";
 
+// Vercel stops a server function after a time limit. The "Generate a draft with AI" button
+// runs on this page and can take about 20 seconds, so allow up to 60.
+export const maxDuration = 60;
+
 // Teacher: preview a unit's guide exactly as students will see it, then approve or replace it.
 // If the unit has no guide yet, offer to generate one.
 export default async function GuidePreview({
